@@ -1,0 +1,66 @@
+<?php
+// Ce fichier affiche un formulaire pour modifier une photo
+// Le formulaire est pr�rempli avec les valeurs actuelles pour la photo
+include('boite_outils.php');
+
+// connexion au SGBD
+$connect = connection();
+?>
+    <html>
+    <head>
+        <title>Mise � jour d'une photo</title>
+        <!-- La ligne suivante est obligatoire si vous utilisez un formulaire
+           avec des dates (fonction input_date de la boite � outils) -->
+        <script  type="text/javascript" src="fonctions.js"> </script>
+    </head>
+    <body>
+    <h1>A faire: ajouter un lien "Annuler" pour afficher la page de la photo</h1>
+    <h1>A faire: ajouter un lien ou un formulaire pour supprimer la photo</h1>
+    <?php
+    // L'identifiant de la photo est transmis par la m�thode GET
+    if (isset($_GET['id'])) {
+        $id_photo = $_GET['id'];
+
+        // La requete recupere les informations sur la photo
+        $requete =
+            "SELECT fichier,date_photo,description,proprietaire 
+	   FROM photo 
+	   WHERE id = $id_photo";
+        // Ex�cution de la requ�te
+        $resultat = $connect->prepare($requete);
+        $resultat->execute();
+        if ($nuplet =$resultat->fetch(PDO::FETCH_ASSOC)) {
+            if (isset($login)) {
+                if ($nuplet['proprietaire'] == $login) {
+                    $fichier = $nuplet['fichier'];
+                    $date = $nuplet['date_photo'];
+                    $description = stripslashes($nuplet['description']);
+
+                    print "<h2>Modification de la photo</h2>\n";
+                    print "<form action='photo.php' method='POST' name='maj'>\n";
+                    print "<p><textarea name='description' rows='10' cols='60'>$description</textarea></p>\n";
+                    print "<p>Date de la photo: ";
+                    input_date('date_photo','maj',$date);
+                    print "</p>\n";
+                    print "<input type='hidden' name='id' value='$id_photo'>";
+                    print "<input type='hidden' name='but' value='maj'>";
+                    print "<p><input type='submit' value='Envoyer'> <input type='reset' value='Annuler les changements'></p>\n";
+                    print "</form>\n";
+                    print "<p><img src='$fichier'></p>";
+                } else {
+                    print "<p><b>Vous ne pouvez pas modifier les informations de cette photo !</b></p>";
+                }
+            }
+        } else {
+            print 'a'.$nuplet.'b';
+            print "<p><b>Photo non existante !</b></p>";
+        }
+    } else {
+        print "<p><b>Photo non specifiee !</b></p>";
+    }
+    ?>
+    </body>
+    </html>
+<?php
+$connect = null;
+?>
